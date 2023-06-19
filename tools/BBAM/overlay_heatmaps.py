@@ -129,13 +129,11 @@ def get_masks(image_id, shape, coco_class):
     return masks
 
 def get_map(image_id, save_dir=None, coco_class=None, dataset='pascal'):
-    # if dataset == 'pascal':
-    #     img_name = image_id.split('_')[0]+'_'+image_id.split('_')[1]
-    #     image = imread(f'{image_path}/{img_name}.jpg')
-    # elif dataset == 'coco':
-    lst_path = os.listdir("/kaggle/working/data/train/train")
-    path = os.path.join("/kaggle/working/data/train_bbam", lst_path[image_id])
-    image = imread(f'{path}')
+    if dataset == 'pascal':
+        img_name = image_id.split('_')[0]+'_'+image_id.split('_')[1]
+        image = imread(f'{image_path}/{img_name}.jpg')
+    elif dataset == 'coco':
+        image = imread(f'{image_path}/{int(image_id):012d}.jpg')
 
     masks = get_masks(image_id, image.shape[:2], coco_class)
     pred_image = imread(f'{root_path}/{image_id}/box_prediction.jpg')

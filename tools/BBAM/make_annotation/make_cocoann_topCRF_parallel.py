@@ -12,9 +12,9 @@ import time
 
 # time.sleep(60*60*1)
 # VOC2012_JSON_FOLDER="Dataset/VOC2012_SEG_AUG/"
-train_json = json.load("kaggle/working/data/anno_all.json")
-coco_class = coco.COCO(annotation_file=train_json)
-img_dir = 'kaggle/working/data/train_bbam'
+train_json = json.load(open("/kaggle/working/data/anno_all.json"))
+coco_class = coco.COCO(annotation_file="/kaggle/working/data/anno_all.json")
+img_dir = '/kaggle/working/data/train_bbam'
 # img_list = open('Dataset/VOC2012_SEG_AUG/ImageSets/Main/train_aug_cocostyle.txt').readlines()
 mask_name = 'BBAM_training_images'
 mask_dir = mask_name
@@ -39,10 +39,10 @@ def process(img_name, th_fg):
     file_name = img_name['file_name']
     img = cv2.imread(os.path.join(img_dir, file_name))
     h, w = img.shape[:2]
-    print(h, w)
+    # print(h, w)
     image_info = create_image_info(int(img_name['id']), file_name, (w, h))
-    print(image_info)
-    ann = get_final_mask_with_topCRF(coco_class, int(img_name['id']), mask_dir, img, th_fg)
+    # print(image_info)
+    ann = get_final_mask_with_topCRF(coco_class, (img_name['id']), mask_dir, img, th_fg)
 
     return ann, image_info, w, h
 
@@ -52,21 +52,24 @@ for th_fg in th_fgs:
     coco_output["annotations"] = []
     coco_output['categories'] = train_json['categories']
 
-    coco_output['type'] = train_json['type']
+    # coco_output['type'] = train_json['type']
     img_idx = 0
     instance_id = 1
-    n_jobs = 50
+    n_jobs = 4
     img_chunks = [train_json['images'][i:i + n_jobs] for i in range(0, len(train_json['images']), n_jobs)]
+    # img_chunks = [train_json['images'][i:i + n_jobs] for i in range(0, 500, n_jobs)]
     start_time = time.time()
     for chunk_idx, img_chunk in enumerate(img_chunks):
         print("%s/%s doing..." % (chunk_idx, len(img_chunks)))
         results = joblib.Parallel(n_jobs=n_jobs, verbose=10, pre_dispatch="all")(
             [joblib.delayed(process)(i, th_fg) for i in img_chunk]
         )
+        # for i in img_chunk
         for ann_idx, ann in enumerate(results):
             ann, image_info, w, h = ann
             img_name = img_chunk[ann_idx]
-            img_id = img_name.replace('_', '')
+            # img_id = img_name.replace('_', '')
+            img_id = ann['id']
             coco_output["images"].append(image_info)
 
             if len(ann['box']) == 0:
@@ -81,13 +84,14 @@ for th_fg in th_fgs:
                         bounding_box=torch.Tensor(box))
 
                     if annotation_info_fg == None:
+                        # print("==== annotation_info_fg is NONE")
                         continue
 
                     instance_id += 1
                     coco_output['annotations'].append(annotation_info_fg)
     print("time", time.time() - start_time)
 
-    with open('datasets/%s_nimg_%d_th_%s.json' % (mask_name, len(img_list), th_fg), 'w') as outfile:
+    with open('%s_nimg_%d_th_%s.json' % (mask_name, len(train_json['images']), th_fg), 'w') as outfile:
         json.dump(coco_output, outfile)
-    print('datasets/%s_nimg_%d_th_%s.json' % (mask_name, len(img_list), th_fg))
+    print('%s_nimg_%d_th_%s.json' % (mask_name, len(train_json['images']), th_fg))
 # BBAM_training_images_nimg_10582_th_0.8.json

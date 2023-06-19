@@ -1,4 +1,4 @@
-# Troubleshooting
+# Troubleshootin
 
 Here is a compilation if common issues that you might face
 while compiling / running this code:

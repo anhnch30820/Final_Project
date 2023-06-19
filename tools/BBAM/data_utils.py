@@ -52,6 +52,7 @@ class BBAM_data_loader(torch.utils.data.Dataset):
     def __getitem__(self, index, mask=None, masking_method='constant', proposal_coord=torch.Tensor([]), batch_size=None):
         img_id = self.ids[index]
         path = os.path.join("/kaggle/working/data/train_bbam", self._imgpath[img_id])
+        print(path)
         img = Image.open(path).convert("RGB")
 
         target = self.get_groundtruth(index)
@@ -210,12 +211,12 @@ class BBAM_data_loader_coco(torch.utils.data.Dataset):
         self.cfg = cfg
         self.transforms = build_transforms(cfg, is_train=False)
 
-        self._annopath = "/kaggle/working/data/anno_all.json"
+        self._annopath = "data/anno_all.json"
         # self.anno_json = json.load(open(self._annopath))
         self.coco_class = coco.COCO(annotation_file=self._annopath)
 
         # self._imgpath = os.path.join(self.root, '%s2017' % split,"%012d.jpg")
-        self._imgpath = "/kaggle/working/data/train_bbam/"
+        self._imgpath = "data/train_bbam/"
 
         self.gpu_device = gpu_device
 
@@ -231,7 +232,6 @@ class BBAM_data_loader_coco(torch.utils.data.Dataset):
 
         img_id = index
         name = self.coco_class.imgs[img_id].get('file_name')
-
         path = os.path.join(self._imgpath, name)
         # if index == 53:
         #     print(path)
@@ -273,19 +273,18 @@ class BBAM_data_loader_coco(torch.utils.data.Dataset):
 
     def masking(self, img, mask, masking_method, blurred_img=None, gpu_device=None, proposal_coord=torch.Tensor([]), batch_size=None):
         # img: torch tensor, (3, w, h), mask: torch tensor
-        if gpu_device == None:
-            img = img.cuda()
-        else:
-            img = img.cuda(gpu_device)
+        device = "cuda"
+        if not (torch.cuda.is_available()):
+            device = "cpu"
+        img = img.to(device)
 
         if masking_method == 'constant':
             pass
 
         elif masking_method == 'blur' or 'blurrandom':
-            if gpu_device == None:
-                noise_map = torch.Tensor(blurred_img).cuda()
-            else:
-                noise_map = torch.Tensor(blurred_img).cuda(gpu_device)
+            noise_map = noise_map.to(device)
+            
+            noise_map = noise_map.to(device)
 
         # print(img.shape, mask.shape, noise_map.shape)
         if gpu_device == None:

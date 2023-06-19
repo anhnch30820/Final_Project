@@ -61,6 +61,7 @@ def get_top_CRF(mask, w, h, p_box, th_fg, postprocessor, img):
     sort_flatten_mask = sorted(mask.flatten(), reverse=True)
     threshold = sort_flatten_mask[int(box_size * (1 - th_fg))] + 1e-8
     mask = np.clip(mask / threshold, 0, 1)
+    # print("box_size, w * h", box_size, w * h)
     kernel_size = int(16 + 48 * np.power(box_size / (w * h), 0.5))
     mask = cv2.GaussianBlur(mask.astype(np.float64),
                             (int(kernel_size) * 2 + 1, int(kernel_size) * 2 + 1), kernel_size)
@@ -74,7 +75,7 @@ def get_top_CRF(mask, w, h, p_box, th_fg, postprocessor, img):
         cv2.imshow('CRF_mask', mask)
     total_mask = np.zeros(mask.shape)
     total_mask[mask > 0.9] = 1
-    cv2.waitKey(0)
+    # cv2.waitKey(0)
     if total_mask.sum() > box_size / 5 or float(box_size / w / h) > 1/10:
         return total_mask
     else:
@@ -106,10 +107,11 @@ def get_final_mask_with_topCRF(coco_class, img_id, mask_dir, img, th_fg):
 
     # target = get_groundtruth(image_name)
 
-    mask_dir = os.path.join(mask_dir, img_id)  # pidx_0000_cls, pidx_0001_cls, ...
+    mask_dir = os.path.join(mask_dir, str(img_id))  # pidx_0000_cls, pidx_0001_cls, ...
     h, w = img.shape[:2]
 
     nullmask_init_prob = [0.7, 0.8, 0.9, 0.95]
+    return_dict['id'] = img_id
     return_dict['score'], return_dict['mask'], return_dict['class'], return_dict['box'] = [], [], [], []
 
     postprocessor = DenseCRF(
@@ -122,12 +124,19 @@ def get_final_mask_with_topCRF(coco_class, img_id, mask_dir, img, th_fg):
     )
     for p_idx, p_label in enumerate(labels):
         p_box = annotations[p_idx]['bbox']
+        p_box[2] = p_box[0] + p_box[2]
+        p_box[3] = p_box[1] + p_box[3]
+        # print("annotations[p_idx]['bbox']", annotations[p_idx]['bbox'])
+        # p_box = BoxList(annotations[p_idx]['bbox'], (w, h), mode="xyxy")
+        # print(p_box)
         mask = cv2.imread(os.path.join(mask_dir, 'pidx_%04d_%s' % (p_idx, ind_to_class[p_label]), 'iter_0299_mask.jpg'))
+        # print(os.path.join(mask_dir, 'pidx_%04d_%s' % (p_idx, ind_to_class[p_label]), 'iter_0299_mask.jpg'))
         return_dict['score'].append(1)
         return_dict['class'].append(annotations[p_idx]['category_id'])
         return_dict['box'].append(p_box)
-
+        
         if (mask is None):
+            print("mask is NONE")
             for init_prob in nullmask_init_prob:
                 total_mask = np.zeros((h, w))
                 total_mask[p_box[1]:p_box[3], p_box[0]:p_box[2]] = init_prob
@@ -143,6 +152,7 @@ def get_final_mask_with_topCRF(coco_class, img_id, mask_dir, img, th_fg):
             continue
         mask = np.array(mask[:, :, 0], dtype=np.float32) / 255.0
 
+        # print("np.max(mask)", np.max(mask))
         if np.max(mask) == 0:  # mask exists, but all 0
             for init_prob in nullmask_init_prob:
                 total_mask = np.zeros((h, w))

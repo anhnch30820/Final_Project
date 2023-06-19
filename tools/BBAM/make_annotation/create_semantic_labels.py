@@ -6,11 +6,11 @@ import numpy as np
 from PIL import Image
 
 
-train_json = 'BBAM_training_images_nimg_10582_th_0.85.json'
-train_json_ignore = 'BBAM_training_images_nimg_10582_th_0.2.json'
+train_json = 'BBAM_training_images_nimg_500_th_0.85.json'
+train_json_ignore = 'BBAM_training_images_nimg_500_th_0.2.json'
 
-img_root = 'Dataset/VOC2012_SEG_AUG/JPEGImages'
-save_dir = 'Dataset/VOC2012_SEG_AUG/Semantic_labels'
+img_root = '/kaggle/working/data/train_bbam'
+save_dir = '/kaggle/working/data/Semantic_labels'
 
 if not os.path.exists(save_dir):
     os.makedirs(save_dir)

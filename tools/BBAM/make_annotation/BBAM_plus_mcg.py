@@ -242,8 +242,8 @@ def match_mcg_proposal(BBAM1, BBAM2, file_name, bbox1, bbox2):
 
 
 
-json_file_name1 = 'datasets/BBAM_training_images_nimg_10582_th_0.85.json'
-json_file_name2 = 'datasets/BBAM_training_images_nimg_10582_th_0.2.json'
+json_file_name1 = 'BBAM_training_images_nimg_500_th_0.85.json'
+json_file_name2 = 'BBAM_training_images_nimg_500_th_0.2.json'
 
 json_file1 = json.load(open(json_file_name1))
 # json_file2 = json.load(open(json_file_name2))
@@ -253,21 +253,21 @@ coco_output1 = {}
 coco_output1["images"] = []
 coco_output1["annotations"] = []
 coco_output1['categories'] = json_file1['categories']
-coco_output1['type'] = json_file1['type']
+# coco_output1['type'] = json_file1['type']
 
 coco_output2 = {}
 coco_output2["images"] = []
 coco_output2["annotations"] = []
 coco_output2['categories'] = json_file1['categories']
-coco_output2['type'] = json_file1['type']
+# coco_output2['type'] = json_file1['type']
 
 
 chunks = []
-n_jobs = 100
+n_jobs = 2
 
 
-mat_dir = 'Dataset/MCG-Pascal-Main_trainvaltest_2012-proposals/'
-mat_dir_2007 = 'Dataset/MCG-Pascal-Main_trainvaltest_2007-proposals/'
+mat_dir = '/kaggle/working/data/train_bbam'
+mat_dir_2007 = '/kaggle/working/data/train_bbam'
 
 def process(json_file_images_i, js_1, js_2):
     img_id = json_file_images_i['id']
@@ -351,7 +351,7 @@ total_list = coco_class1.getImgIds()
 json_imgs = coco_class1.loadImgs(total_list)
 
 
-results = joblib.Parallel(n_jobs=n_jobs, verbose=50, pre_dispatch="all")(
+results = joblib.Parallel(n_jobs=n_jobs, verbose=10, pre_dispatch="all")(
     [joblib.delayed(process)(coco_class1.loadImgs(total_list[i])[0], coco_class1.loadAnns(coco_class1.getAnnIds(total_list[i])),
                                        coco_class2.loadAnns(coco_class2.getAnnIds(total_list[i]))) for i in range(len(total_list))])
 for ann_idx, ann in enumerate(results):

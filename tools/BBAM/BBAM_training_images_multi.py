@@ -24,7 +24,7 @@ from maskrcnn_benchmark.structures.bounding_box import BoxList
 import time
 
 # os.environ["CUDA_VISIBLE_DEVICES"] = "4,5,6,7"
-os.environ["CUDA_LAUNCH_BLOCKING"] = "0"
+# os.environ["CUDA_LAUNCH_BLOCKING"] = "0"
 idx_to_class = {0 : 'non-neoplastic', 1 : 'neoplastic'}
 
 # time.sleep(60*60*2)
@@ -95,8 +95,12 @@ if not os.path.exists(save_path_root):
 
 def process(query):
     ind_start, ind_end, gpu_device = query
-    os.environ["CUDA_VISIBLE_DEVICES"] = "%s" % gpu_device
+    # os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
     model = build_detection_model(cfg, BBAM=True)
+    if not (torch.cuda.is_available()):
+        print("torch.cuda.is_available()", torch.cuda.is_available())
+        cfg.defrost()
+        cfg.MODEL.DEVICE = "cpu"
     model.to(cfg.MODEL.DEVICE)
     device = torch.device(cfg.MODEL.DEVICE)
     checkpointer = DetectronCheckpointer(cfg, model, save_dir=output_dir)
@@ -149,8 +153,10 @@ def process(query):
             box_regression = return_for_BBAM['box_regression']  # 1000*84
             after_regression_proposal = return_for_BBAM['after_regression_proposal']  # 1000*84
             for iou_th in [0.9, 0.85, 0.8]:
+
                 positive_idxs = []
                 for i in range(1000):
+                    print(i)
                     selected_c = torch.argmax(class_logits[i]).data.cpu().numpy()
                     iou = get_single_iou(target_box, after_regression_proposal[i][4 * selected_c:4 * (selected_c + 1)])
                     if iou > iou_th and selected_c == target_label.numpy():
@@ -211,11 +217,13 @@ def process(query):
 
                     loss += l1_coeff * torch.sum(torch.abs(mask)) + args.tv_coeff * tv_norm(mask, args.tv_beta, diagonal=True, sum=True)
                     optimizer.zero_grad()
+                    print("loss", loss)
                     loss.backward()
                     optimizer.step()
 
                     mask.data.clamp_(0, 1)
-                    if (mask_iter == 0) or ((mask_iter+1) % 100 == 0):
+                    # if (mask_iter == 0) or ((mask_iter+1) % 100 == 0):
+                    if True:
                         save_mask(mask=mask,
                                   masked_img=masked_image,
                                   # proposal=fixed_proposals[0].bbox[positive_idx],
@@ -232,8 +240,7 @@ def process(query):
 
 
 queries = [
-           [87, 100, 0], [101, 150, 0], [150, 200, 0], [200, 250, 0],
-           [250, 300, 1], [300, 350, 1], [350, 400, 1], [400, 450, 1], [450, 500, 1]
+           [0, 2, 0]      
            ]
 
 print(queries)

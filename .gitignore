@@ -42,3 +42,7 @@ Faster_VOC_val_color/*
 BBAM_Mask_RCNN_logs_mcg85/*
 BBAM_training_images/*
 README.md
+*.pth
+*.jpeg
+*.png
+*.json
