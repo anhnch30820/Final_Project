@@ -1,7 +1,7 @@
 AMP_VERBOSE: false
 DATALOADER:
   ASPECT_RATIO_GROUPING: true
-  NUM_WORKERS: 4
+  NUM_WORKERS: 8
   SIZE_DIVISIBILITY: 32
 DATASETS:
   TEST:
@@ -14,11 +14,11 @@ INPUT:
   CONTRAST: 0.0
   HORIZONTAL_FLIP_PROB_TRAIN: 0.5
   HUE: 0.0
-  MAX_SIZE_TEST: 1333
-  MAX_SIZE_TRAIN: 1333
-  MIN_SIZE_TEST: 800
+  MAX_SIZE_TEST: 900
+  MAX_SIZE_TRAIN: 900
+  MIN_SIZE_TEST: 640
   MIN_SIZE_TRAIN:
-  - 800
+  - 640
   PIXEL_MEAN:
   - 102.9801
   - 115.9465
@@ -83,7 +83,7 @@ MODEL:
     WIDTH_PER_GROUP: 64
     WITH_MODULATED_DCN: false
   RETINANET:
-    ANCHOR_SIZES: &id002
+    ANCHOR_SIZES:
     - 32
     - 64
     - 128
@@ -95,7 +95,7 @@ MODEL:
     - 32
     - 64
     - 128
-    ASPECT_RATIOS: &id003
+    ASPECT_RATIOS:
     - 0.5
     - 1.0
     - 2.0
@@ -161,7 +161,7 @@ MODEL:
     NUM_CLASSES: 17
     POOLER_RESOLUTION: 14
     POOLER_SAMPLING_RATIO: 0
-    POOLER_SCALES: &id001
+    POOLER_SCALES:
     - 0.0625
     PREDICTOR: KeypointRCNNPredictor
     RESOLUTION: 14
@@ -177,7 +177,8 @@ MODEL:
     MLP_HEAD_DIM: 1024
     POOLER_RESOLUTION: 14
     POOLER_SAMPLING_RATIO: 0
-    POOLER_SCALES: *id001
+    POOLER_SCALES:
+    - 0.0625
     POSTPROCESS_MASKS: false
     POSTPROCESS_MASKS_THRESHOLD: 0.5
     PREDICTOR: MaskRCNNC4Predictor
@@ -185,14 +186,22 @@ MODEL:
     SHARE_BOX_FEATURE_EXTRACTOR: true
     USE_GN: false
   RPN:
-    ANCHOR_SIZES: *id002
+    ANCHOR_SIZES:
+    - 32
+    - 64
+    - 128
+    - 256
+    - 512
     ANCHOR_STRIDE:
     - 4
     - 8
     - 16
     - 32
     - 64
-    ASPECT_RATIOS: *id003
+    ASPECT_RATIOS:
+    - 0.5
+    - 1.0
+    - 2.0
     BATCH_SIZE_PER_IMAGE: 256
     BG_IOU_THRESHOLD: 0.3
     FG_IOU_THRESHOLD: 0.7
@@ -210,21 +219,21 @@ MODEL:
     STRADDLE_THRESH: 0
     USE_FPN: true
   RPN_ONLY: false
-  WEIGHT: catalog://ImageNetPretrained/MSRA/R-101
-OUTPUT_DIR: /content/drive/MyDrive/PJ3/models
-PATHS_CATALOG: /content/drive/MyDrive/PJ3/maskrcnn-benchmark/maskrcnn_benchmark/config/paths_catalog.py
+  WEIGHT: /mnt/anhnch/weight_faster_rcnn/model_0040500.pth
+OUTPUT_DIR: /mnt/anhnch/weight_faster_rcnn
+PATHS_CATALOG: /home/s/anhnch/maskrcnn-benchmark/maskrcnn_benchmark/config/paths_catalog.py
 SOLVER:
   BASE_LR: 0.0001
   BIAS_LR_FACTOR: 2
-  CHECKPOINT_PERIOD: 400
+  CHECKPOINT_PERIOD: 500
   GAMMA: 0.1
-  IMS_PER_BATCH: 4
-  MAX_ITER: 8000
+  IMS_PER_BATCH: 2
+  MAX_ITER: 50000
   MOMENTUM: 0.9
   STEPS:
-  - 7200
-  - 7600
-  TEST_PERIOD: 400
+  - 47000
+  - 49000
+  TEST_PERIOD: 500
   WARMUP_FACTOR: 0.3333333333333333
   WARMUP_ITERS: 100
   WARMUP_METHOD: linear
