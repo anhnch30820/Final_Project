@@ -5,14 +5,13 @@ from pycocotools import coco
 import numpy as np
 from PIL import Image
 
+train_json = 'BBAM_training_images_fix_nimg_2638_th_0.85.json'
+train_json_ignore = 'BBAM_training_images_fix_nimg_2638_th_0.2.json'
 
-train_json = 'BBAM_training_images_nimg_500_th_0.85.json'
-train_json_ignore = 'BBAM_training_images_nimg_500_th_0.2.json'
+img_root = '/anhnch/data/WLIv5_pub_noud_640/Train/images'
+save_dir = '/anhnch/data/pseudo_labels_fix'
 
-img_root = '/kaggle/working/data/train_bbam'
-save_dir = '/kaggle/working/data/Semantic_labels'
-
-if not os.path.exists(save_dir):
+if not os.path.exists(save_dir): 
     os.makedirs(save_dir)
 coco_class = coco.COCO(annotation_file=train_json)
 coco_class_ignore = coco.COCO(annotation_file=train_json_ignore)
@@ -53,7 +52,7 @@ def get_aggregated_mask(classes, boxes, masks):
     cls_mask = np.zeros(masks[-1].shape)
     for c in range(1, 21):
         cls_mask[total_mask[c]==1] = c
-    cls_mask[np.sum(total_mask, axis=0)>1] = 255
+    cls_mask[np.sum(total_mask, axis=0)>1] = 0
     for box_idx in box_priority:
         if check_entire_overlap(boxes[box_idx], boxes):
             cls_mask[masks[box_idx]==1] = classes[box_idx]
@@ -63,11 +62,18 @@ def get_aggregated_mask(classes, boxes, masks):
 
 for img_idx in total_img_ids:
     img_idx, img_name = img_idx
+    print(img_idx)
+    name = img_name.split(".")[0]
+    # print(name)
+  
     if True:
         ann_ids = coco_class.getAnnIds(imgIds=[img_idx])
         ann_ids_ignore = coco_class_ignore.getAnnIds(imgIds=[img_idx])
         anns = coco_class.loadAnns(ann_ids)
+        # print(anns)
         anns_ignore = coco_class_ignore.loadAnns(ann_ids_ignore)
+        # print(anns_ignore)
+        
         classes, boxes, masks, masks_ignore = [], [], [], []
 
         for ann, ann_ignore in zip(anns, anns_ignore):
@@ -75,15 +81,17 @@ for img_idx in total_img_ids:
             boxes.append(ann['bbox'])
             masks.append(coco_class.annToMask(ann))
             masks_ignore.append(coco_class_ignore.annToMask(ann_ignore))
-
+        # print(masks)
         ignore_mask = np.zeros(masks[-1].shape)
 
         for m, m_ignore in zip(masks, masks_ignore):
             ignore_mask[(m == 0) & (m_ignore == 1)] = 1
         total_mask = get_aggregated_mask(classes, boxes, masks)
-        total_mask[ignore_mask == 1] = 255
-
+        # print(np.unique(total_mask))
+        total_mask[ignore_mask == 1] = 0
         out = Image.fromarray(total_mask.astype(np.uint8), mode='P')
         out.putpalette(palette)
+        # print(np.unique(np.array(out)))
         img_idx = str(img_idx)
-        out.save(os.path.join(save_dir, '%s_%s.png' % (img_idx[:4], img_idx[4:])))
+        out.save(os.path.join(save_dir, '%s.png' % (name)))
+    # break
