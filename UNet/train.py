@@ -7,6 +7,7 @@ import torch.nn as nn
 from torch.utils.data import DataLoader
 from torch import optim
 import pandas as pd
+import torch.nn.functional as F
 
 from .model import Unet, ModelEmaV2
 from .utils import *

@@ -42,9 +42,8 @@ def read_mask(mask_path):
     return full_mask
 
 def read_mask_bbam(path):
-  img = cv2.imread(path, 0)
-  img[img == 38] = 1
-  img[img == 75] = 2
+  img = Image.open(path)
+  img = np.array(img)
 
   return img
 

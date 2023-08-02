@@ -28,6 +28,6 @@ model_simp, check = simplify(model)
 
 ########### Convert to FP16 ##########
 from onnxmltools.utils.float16_converter import convert_float_to_float16
-from onnxmltools.utils import load_model, save_model
+from onnxmltools.utils import save_model
 new_onnx_model = convert_float_to_float16(model_simp)
 save_model(new_onnx_model, 'model.fp16.onnx')
